@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TestMind AI — Automated Software Testing Suite</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<div class="app">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-mark">TP</div>
+      <h1>Test<span>Mind</span> AI <span class="logo-sub">/ Core</span></h1>
+    </div>
+    <div class="topbar-r">
+      <div class="api-wrap" id="apiWrap">
+        <label>API Key</label>
+        <input type="password" id="apiKey" placeholder="Enter Gemini API key…" autocomplete="off" />
+        <button class="key-clear-btn" id="clearKeyBtn" title="Clear key" type="button">×</button>
+      </div>
+      <div class="badge missing" id="keyStatusBadge">
+        <span class="dot" id="keyStatusDot"></span>
+        <span id="keyStatusText">No Key</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- TAB NAVIGATION -->
+  <nav class="tab-nav" id="tabNav">
+    <button class="tab-btn active" data-tab="code">Code Analyzer<span class="tab-num">01</span></button>
+    <button class="tab-btn" data-tab="ui">UI Auditor<span class="tab-num">02</span></button>
+    <button class="tab-btn" data-tab="vr">Visual Regression<span class="tab-num">03</span></button>
+    <button class="tab-btn" data-tab="api">API Tester<span class="tab-num">04</span></button>
+    <button class="tab-btn" data-tab="pri">Test Prioritizer<span class="tab-num">05</span></button>
+  </nav>
+
+  <!-- PANEL 1: CODE ANALYZER -->
+  <div class="panel active" id="panel-code">
+    <div class="split">
+      <div class="split-left">
+        <div class="pane-head">
+          <span class="pane-title">Source Code</span>
+          <div class="lang-pills">
+            <button class="lang-pill active" onclick="setLang('python',this)">Python</button>
+            <button class="lang-pill" onclick="setLang('javascript',this)">JavaScript</button>
+          </div>
+        </div>
+        <div class="editor-area">
+          <textarea class="code-input" id="codeInput" spellcheck="false" placeholder="Paste source code for static analysis and automated test generation…"></textarea>
+        </div>
+        <div class="controls">
+          <select class="ctrl-select" id="codeMode">
+            <option value="full">Full Suite (Tests, Bugs & Fixes)</option>
+            <option value="tests">Test Cases Only</option>
+            <option value="bugs">Bug Detection & Review</option>
+            <option value="flow">Control Flow & State Errors</option>
+          </select>
+          <button class="btn btn-primary" onclick="runCodeAnalysis()">Run Analysis</button>
+          <button class="btn btn-ghost ml-auto" onclick="loadCodeSample()">Load Sample</button>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="pane-head"><span class="pane-title">Analysis Output</span></div>
+        <div class="results" id="codeResults">
+          <div class="empty">
+            <span class="empty-tag">READY</span>
+            <h3>No Active Analysis</h3>
+            <p>Paste code on the left and select an execution mode to inspect bugs, edge cases, and test scripts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 2: UI AUDITOR -->
+  <div class="panel" id="panel-ui">
+    <div class="split">
+      <div class="split-left">
+        <div class="pane-head"><span class="pane-title">Target Source</span></div>
+        <div class="input-group">
+          <div>
+            <div class="field-label">Endpoint / Public URL</div>
+            <input class="text-field" id="uiUrl" placeholder="https://example.com" />
+          </div>
+          <div class="field-divider"><span>OR PASTE RAW MARKUP</span></div>
+          <div>
+            <div class="field-label">HTML / Component Code</div>
+            <textarea class="text-field" id="uiHtml" placeholder="<!DOCTYPE html>&#10;<html>&#10;  <body>...</body>&#10;</html>" style="min-height:180px"></textarea>
+          </div>
+        </div>
+        <div class="controls">
+          <select class="ctrl-select" id="uiMode">
+            <option value="full">Comprehensive UI Audit</option>
+            <option value="accessibility">Accessibility Compliance (WCAG 2.1)</option>
+            <option value="consistency">Visual Consistency & Design Tokens</option>
+            <option value="responsive">Responsive & Viewport Constraints</option>
+            <option value="performance">UX Patterns & Performance</option>
+          </select>
+          <button class="btn btn-primary" onclick="runUIAudit()">Run Audit</button>
+          <button class="btn btn-ghost ml-auto" onclick="loadUISample()">Load Sample</button>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="pane-head"><span class="pane-title">Audit Report</span></div>
+        <div class="results" id="uiResults">
+          <div class="empty">
+            <span class="empty-tag">READY</span>
+            <h3>No Audit Executed</h3>
+            <p>Provide a public URL or HTML snippet to evaluate accessibility, layout consistency, and responsive structure.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 3: VISUAL REGRESSION -->
+  <div class="panel" id="panel-vr">
+    <div class="split">
+      <div class="split-left">
+        <div class="pane-head"><span class="pane-title">Version Comparison</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;flex:1;overflow:hidden">
+          <div style="border-right:1px solid var(--border-1);display:flex;flex-direction:column">
+            <div class="pane-head" style="background:rgba(255,61,113,.04)">
+              <span class="pane-title" style="color:var(--red)">Baseline Version</span>
+            </div>
+            <div class="editor-area">
+              <textarea class="code-input" id="vrBefore" spellcheck="false" placeholder="Paste baseline HTML/CSS structure…"></textarea>
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column">
+            <div class="pane-head" style="background:rgba(0,230,118,.04)">
+              <span class="pane-title" style="color:var(--green)">Target Version</span>
+            </div>
+            <div class="editor-area">
+              <textarea class="code-input" id="vrAfter" spellcheck="false" placeholder="Paste updated HTML/CSS structure…"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="runVisualRegression()">Compare Versions</button>
+          <button class="btn btn-ghost ml-auto" onclick="loadVRSample()">Load Sample</button>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="pane-head"><span class="pane-title">Diff Assessment</span></div>
+        <div class="results" id="vrResults">
+          <div class="empty">
+            <span class="empty-tag">READY</span>
+            <h3>No Diff Available</h3>
+            <p>Input baseline and modified component structures to detect breaking layout shifts, token drift, and regressions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 4: API TESTER -->
+  <div class="panel" id="panel-api">
+    <div class="split">
+      <div class="split-left">
+        <div class="pane-head"><span class="pane-title">Endpoint Configuration</span></div>
+        <div class="input-group" style="flex:1;overflow-y:auto">
+          <div>
+            <div class="field-label">Endpoint URL</div>
+            <input class="text-field" id="apiUrl" placeholder="https://api.example.com/v1/resource">
+          </div>
+          <div>
+            <div class="field-label">HTTP Method</div>
+            <select class="text-field" id="apiMethod" style="cursor:pointer">
+              <option>GET</option><option>POST</option><option>PUT</option><option>PATCH</option><option>DELETE</option>
+            </select>
+          </div>
+          <div>
+            <div class="field-label">Request Schema / Payload (JSON)</div>
+            <textarea class="text-field" id="apiBody" placeholder='{"username": "string", "email": "string"}' style="min-height:90px"></textarea>
+          </div>
+          <div>
+            <div class="field-label">Headers (JSON, optional)</div>
+            <textarea class="text-field" id="apiHeaders" placeholder='{"Authorization": "Bearer <token>", "Content-Type": "application/json"}' style="min-height:55px"></textarea>
+          </div>
+          <div>
+            <div class="field-label">Business Context & Constraints</div>
+            <textarea class="text-field" id="apiContext" placeholder="Detail rate limits, auth models, role requirements, and unique constraints…" style="min-height:60px"></textarea>
+          </div>
+        </div>
+        <div class="controls">
+          <select class="ctrl-select" id="apiMode">
+            <option value="full">Full Suite (Functional + Security + Load)</option>
+            <option value="security">Security & Auth Vulnerabilities</option>
+            <option value="edge">Edge Cases & Payload Bounds</option>
+            <option value="load">Performance & Concurrency Models</option>
+          </select>
+          <button class="btn btn-primary" onclick="runAPITest()">Generate Tests</button>
+          <button class="btn btn-ghost ml-auto" onclick="loadAPISample()">Load Sample</button>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="pane-head"><span class="pane-title">Test Suite Output</span></div>
+        <div class="results" id="apiResults">
+          <div class="empty">
+            <span class="empty-tag">READY</span>
+            <h3>No Test Suite Generated</h3>
+            <p>Define API contract specs to generate functional validation, edge cases, and automated execution scripts.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANEL 5: TEST PRIORITIZER -->
+  <div class="panel" id="panel-pri">
+    <div class="split">
+      <div class="split-left">
+        <div class="pane-head"><span class="pane-title">Test Suite / Feature Matrix</span></div>
+        <div class="editor-area">
+          <textarea class="code-input" id="priInput" spellcheck="false" placeholder="Paste test case IDs, feature modules, or user stories to rank execution order…"></textarea>
+        </div>
+        <div class="controls">
+          <select class="ctrl-select" id="priMode">
+            <option value="risk">Risk-Based Prioritization</option>
+            <option value="ci">CI/CD Pipeline Order</option>
+            <option value="regression">Regression Impact Analysis</option>
+            <option value="coverage">Maximum Code Coverage</option>
+          </select>
+          <button class="btn btn-primary" onclick="runPrioritizer()">Prioritize Suite</button>
+          <button class="btn btn-ghost ml-auto" onclick="loadPriSample()">Load Sample</button>
+        </div>
+      </div>
+      <div class="split-right">
+        <div class="pane-head"><span class="pane-title">Execution Strategy</span></div>
+        <div class="results" id="priResults">
+          <div class="empty">
+            <span class="empty-tag">READY</span>
+            <h3>No Plan Generated</h3>
+            <p>Input candidate test items to generate ranked phases, smoke testing sequences, and parallel execution blocks.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="./app.js" defer></script>
+</body>
+</html>
